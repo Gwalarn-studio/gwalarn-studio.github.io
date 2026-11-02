@@ -1,0 +1,336 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="google-site-verification" content="xr04cnwUJ9O7dfNQE8VGNQkIYiNTeebG1ID9B4vZDqc"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plume &amp; Go</title><link rel="icon" type="image/svg+xml" href="assets/gwalarn-icone.svg"><link rel="icon" type="image/png" href="assets/gwalarn-icone.png"><link rel="apple-touch-icon" href="assets/gwalarn-icone.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="AI-tailored CV and cover letter in one minute, plus proofreading, rewriting and EN/FR translation: all written by AI and ready in about a minute.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+/* Layout: a writer's desk. Ink-green top band, then a 3-column grid of service "tickets"
+   with a highlighter-yellow mark on what matters (price, delivery). */
+:root{
+  --paper:#fbfbf8; --surface:#ffffff; --ink:#14201f; --muted:#56625f; --line:#dfe3df;
+  --brand:#0f4b45; --brand-ink:#f3f7f5; --mark:#ffe45c; --mark-ink:#14201f; --ok:#1d7a4f;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0e1514; --surface:#152120; --ink:#e8efec; --muted:#a3b2ad; --line:#253533;
+  --brand:#0b2f2c; --brand-ink:#e8efec; --mark:#f2d64a; --mark-ink:#14201f; --ok:#5cc792; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0e1514; --surface:#152120; --ink:#e8efec; --muted:#a3b2ad; --line:#253533;
+  --brand:#0b2f2c; --brand-ink:#e8efec; --mark:#f2d64a; --mark-ink:#14201f; --ok:#5cc792; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.6 var(--body)}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.1;margin:0}
+p{margin:0}
+mark{background:linear-gradient(transparent 55%,var(--mark) 55%);color:inherit;padding:0 .1em}
+
+/* top band */
+.band{background:var(--brand);color:var(--brand-ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px}
+.logo{font:800 1.35rem/1 var(--display);letter-spacing:-.01em;text-decoration:none}
+.logo span{color:var(--mark)}
+.lang{display:flex;border:1px solid color-mix(in srgb,var(--brand-ink) 35%,transparent);border-radius:999px;padding:3px}
+.lang button{font:500 .875rem/1 var(--mono);letter-spacing:.06em;background:none;color:var(--brand-ink);border:0;border-radius:999px;padding:7px 12px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--mark);color:var(--mark-ink)}
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:end;padding-block:40px 56px}
+.hero h1{font-size:clamp(2.2rem,5.4vw,4rem);font-weight:800;letter-spacing:-.025em}
+.hero h1 em{font-style:normal;color:var(--mark)}
+.hero p.lead{margin-top:18px;font-size:1.15rem;max-width:34em;opacity:.92}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 1rem/1 var(--body);padding:14px 20px;border-radius:999px;border:0;cursor:pointer;text-decoration:none}
+.btn-mark{background:var(--mark);color:var(--mark-ink)}
+.btn-ghost{background:transparent;color:var(--brand-ink);border:1px solid color-mix(in srgb,var(--brand-ink) 40%,transparent)}
+.btn:hover{transform:translateY(-1px)}
+.clock{border:1px dashed color-mix(in srgb,var(--brand-ink) 40%,transparent);border-radius:var(--r);padding:20px;font-family:var(--mono);font-size:.9rem;display:grid;gap:10px}
+.clock div{display:flex;justify-content:space-between;gap:12px}
+.clock b{font-weight:500;color:var(--mark)}
+.clock small{opacity:.85;font-size:.85rem}
+
+/* sections */
+section{padding-block:64px}
+.eyebrow{font:500 .85rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sec-head{display:grid;gap:10px;margin-bottom:32px;max-width:40em}
+.sec-head h2{font-size:clamp(1.7rem,3.4vw,2.4rem);font-weight:700;letter-spacing:-.02em}
+.sec-head p{color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.card h3{font-size:1.3rem;font-weight:700}
+.price{font:500 1.3rem/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.card p{color:var(--muted)}
+.card ul{list-style:none;padding:0;margin:0;display:grid;gap:6px;font-size:.95rem}
+.card li{display:flex;gap:8px}
+.card li::before{content:"✓";color:var(--ok);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:6px}
+.chip{font:500 .85rem/1 var(--mono);letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted)}
+.chip.fast{background:var(--mark);color:var(--mark-ink);border-color:transparent}
+.buy{width:100%;justify-content:center;background:var(--brand);color:var(--brand-ink)}
+.grid.one{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:600px){.grid.one{grid-template-columns:1fr}}
+#cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:600px){#cards{grid-template-columns:1fr}}
+:root:not([data-theme="light"]) .buy{border:1px solid var(--line)}
+/* dark mode: make the order buttons stand out from the card */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .buy{background:#1f6b62}}
+:root[data-theme="dark"] .buy{background:#1f6b62}
+
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;border-top:2px solid var(--ink);padding-top:14px;display:grid;gap:6px;min-width:0}
+.steps li::before{content:counter(s);font:500 .85rem/1 var(--mono);color:var(--muted)}
+.steps h3{font-size:1.1rem}
+.steps p{color:var(--muted);font-size:.95rem}
+
+.promise{background:var(--surface);border-block:1px solid var(--line)}
+.promise .grid > div{display:grid;gap:6px}
+.promise h3{font-size:1.1rem}
+.promise p{color:var(--muted)}
+
+.faq{display:grid;gap:10px;max-width:760px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px}
+summary{cursor:pointer;font-weight:600}
+details p{margin-top:10px;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding-block:32px;color:var(--muted);font-size:.9rem}
+footer .row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
+footer nav{display:flex;flex-wrap:wrap;gap:18px}
+footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-size:.85rem}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:.95rem;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr}}
+@media (max-width:600px){.grid,.steps{grid-template-columns:1fr}section{padding-block:48px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.btn:hover{transform:none}}
+.logo{display:inline-flex;align-items:center} .gw-mark{display:block;border-radius:7px;flex:none;margin-right:8px}
+</style>
+</head><body>
+
+<div class="band">
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="#top"><img class="gw-mark" src="assets/gwalarn-icone.svg" alt="" width="28" height="28">Plume<span>&amp;</span>Go</a>
+      <div class="lang" role="group" aria-label="Language">
+        <button id="lang-en" type="button" data-set-lang="en" aria-pressed="true">EN</button>
+        <button id="lang-fr" type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+      </div>
+    </header>
+    <div class="hero" id="top">
+      <div>
+        <h1 data-i18n-html="hero.title">Small writing jobs, <em>done by tomorrow.</em></h1>
+        <p class="lead" data-i18n="hero.lead">CV and cover letter, proofreading, rewriting and translation in English and French. Fixed prices, no back-and-forth: our AI does the work and your result is on screen in about a minute.</p>
+        <div class="ctas">
+          <a class="btn btn-mark" href="#services" data-i18n="hero.cta">See the services</a>
+          <a class="btn btn-ghost" href="#how" data-i18n="hero.cta2">How it works</a>
+        </div>
+      </div>
+      <div class="clock" aria-label="Delivery promise">
+        <div><span data-i18n="clock.order">Text sent</span><b>09:40</b></div>
+        <div><span data-i18n="clock.brief">Payment confirmed</span><b>09:41</b></div>
+        <div><span data-i18n="clock.done">Result on screen</span><b>09:42</b></div>
+        <small data-i18n="clock.note">The link is also emailed to you.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section id="services">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="svc.eyebrow">Services · fixed prices</span>
+        <h2 data-i18n="svc.title">Pick one, pay once, ready in a minute.</h2>
+        <p data-i18n="svc.sub">Final prices, no hidden fees. Refunded if it misses the mark.</p>
+      </div>
+      <div class="grid" id="cards"></div>
+    </div>
+  </section>
+
+  <section id="guides" class="promise">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="gd.eyebrow">Downloadable guides</span>
+        <h2 data-i18n="gd.title">Do it yourself, at your own pace.</h2>
+        <p data-i18n="gd.sub">A clear, practical PDF to download right after payment.</p>
+      </div>
+      <div class="grid one" id="guide-cards"></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
+        <h2 data-i18n="how.title">Four steps, no meetings.</h2>
+      </div>
+      <ol class="steps">
+        <li><h3 data-i18n="how.1t">Choose a service</h3><p data-i18n="how.1p">Each one has a fixed price and a clear scope.</p></li>
+        <li><h3 data-i18n="how.2t">Send your brief</h3><p data-i18n="how.2p">A short form opens. Paste your text and say what you need.</p></li>
+        <li><h3 data-i18n="how.3t">Pay securely</h3><p data-i18n="how.3p">By card or Apple Pay through Stripe, our payment partner.</p></li>
+        <li><h3 data-i18n="how.4t">Get it in a minute</h3><p data-i18n="how.4p">Your result appears on screen and the link is emailed to you. Changes are included, and if it is not what you asked for, you get a refund.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="pr.eyebrow">Our promise</span>
+        <h2 data-i18n="pr.title">Quick does not mean careless.</h2>
+      </div>
+      <div class="grid">
+        <div class="card"><h3 data-i18n="pr.1t">Not ready? Refunded.</h3><p data-i18n="pr.1p">If a technical problem stops your result from appearing, we finish it within 24 hours or refund you in full.</p></div>
+        <div class="card"><h3 data-i18n="pr.2t">Not what you asked? Refunded.</h3><p data-i18n="pr.2p">If the work does not match your brief, tell us within 7 days and you get a full refund.</p></div>
+        <div class="card"><h3 data-i18n="pr.3t">Your data stays yours</h3><p data-i18n="pr.3p">Files are used only for your order and deleted after 5 days. Only the invoice is kept.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="promise">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">FAQ</span>
+        <h2 data-i18n="faq.title">Questions people ask</h2>
+      </div>
+      <div class="faq">
+        <details><summary data-i18n="faq.1q">Which languages do you work in?</summary><p data-i18n="faq.1p">English and French, plus translation between the two.</p></details>
+        <details><summary data-i18n="faq.2q">How do I send my documents?</summary><p data-i18n="faq.2p">When you order, a short form asks you to paste your text and describe what you need. No account needed.</p></details>
+        <details><summary data-i18n="faq.3q">Can I get an invoice?</summary><p data-i18n="faq.3p">Yes. A receipt is emailed after each payment, and we send an invoice on request.</p></details>
+        <details><summary data-i18n="faq.4q">What if I need something bigger?</summary><p data-i18n="faq.4p">Order the service twice (for example two blocks of 500 words), or write to us for a quote.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <span>© 2026 Plume &amp; Go · Gwalarn · [PRÉNOM NOM], EI</span>
+    <nav aria-label="Legal">
+      <a href="en/legal-notice.html" data-href-en="en/legal-notice.html" data-href-fr="fr/mentions-legales.html" data-i18n="ft.legal">Legal notice</a>
+      <a href="en/terms.html" data-href-en="en/terms.html" data-href-fr="fr/cgv.html" data-i18n="ft.terms">Terms of sale</a>
+      <a href="en/privacy.html" data-href-en="en/privacy.html" data-href-fr="fr/confidentialite.html" data-i18n="ft.privacy">Privacy</a>
+      <a href="https://commandes.gwalarn.workers.dev/retractation?site=plume&amp;lang=en" data-href-en="https://commandes.gwalarn.workers.dev/retractation?site=plume&amp;lang=en" data-href-fr="https://commandes.gwalarn.workers.dev/retractation?site=plume&amp;lang=fr" data-i18n="ft.withdraw">Withdraw from contract here</a>
+      <a href="en/legal-notice.html#contact" data-href-en="en/legal-notice.html#contact" data-href-fr="fr/mentions-legales.html#contact" data-i18n="ft.contact">Contact</a>
+    </nav>
+  </div>
+  <div class="wrap sister">
+    <span data-i18n="ft.sites">Gwalarn sites:</span>
+    <span>Plume &amp; Go</span>
+    <a href="https://gwalarn-studio.github.io/nextdesk/" data-href-en="https://gwalarn-studio.github.io/nextdesk/" data-href-fr="https://gwalarn-studio.github.io/nextdesk/fr/" data-i18n="ft.nd">NextDesk · careers and remote work</a>
+    <a href="https://gwalarn-studio.github.io/algoclair/en/" data-href-en="https://gwalarn-studio.github.io/algoclair/en/" data-href-fr="https://gwalarn-studio.github.io/algoclair/" data-i18n="ft.ac">AlgoClair · social media algorithms</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* Order links go to the payments worker (brief form, then Stripe): WORKER/commander/<id>?lang=xx.
+   Paste the worker address below once it is online (empty = "coming soon" toast on every button). */
+const WORKER = "";
+const CHECKOUT = Object.fromEntries(["cv", "proof", "rewrite", "translate", "guide-linkedin", "guide-interview"]
+  .map(id => [id, WORKER ? WORKER.replace(/\/+$/, "") + "/commander/" + id : ""]));
+
+const SERVICES = [
+  { id:"cv", price:15, fast:{en:"1 min", fr:"1 min"}, en:{t:"CV + cover letter", p:"Paste your CV, or just answer a few simple questions if you don't have one: our AI writes your CV and matching cover letter in under a minute.", f:["No CV? A simple questionnaire is enough","Tailored to the job ad, ATS-friendly","Changes on request, then PDF or Word"]},
+    fr:{t:"CV + lettre de motivation", p:"Collez votre CV, ou répondez simplement à quelques questions si vous n'en avez pas : notre IA rédige votre CV et la lettre assortie en moins d'une minute.", f:["Pas de CV ? Un questionnaire simple suffit","Adapté à l'offre, lisible par les logiciels de tri","Retouches à la demande, puis PDF ou Word"]}, chip:"CV + letter", chipFr:"CV + lettre" },
+  { id:"proof", price:7, en:{t:"Proofreading", p:"Our AI fixes every mistake without touching your style, and explains each fix.", f:["Up to 1,500 words","Your style kept, every fix explained","Ready in 1 minute, 2 changes included"]},
+    fr:{t:"Relecture", p:"Notre IA corrige chaque faute sans toucher à votre style, et vous explique chaque correction.", f:["Jusqu'à 1 500 mots","Votre style gardé, chaque correction expliquée","Prêt en 1 minute, 2 ajustements inclus"]}, chip:"≤ 1,500 words", chipFr:"≤ 1 500 mots" },
+  { id:"rewrite", price:9, en:{t:"Rewriting", p:"Our AI makes your text clearer and more convincing, in the tone you choose.", f:["Up to 800 words","Email, bio, web page or post","From casual to very formal"]},
+    fr:{t:"Réécriture", p:"Notre IA rend votre texte plus clair et plus convaincant, dans le ton que vous choisissez.", f:["Jusqu'à 800 mots","E-mail, bio, page web ou publication","Du familier au très formel"]}, chip:"≤ 800 words", chipFr:"≤ 800 mots" },
+  { id:"translate", price:9, en:{t:"Translation EN ↔ FR", p:"Translated by our AI the way a native speaker would write it: everyday English, not textbook English.", f:["Up to 500 words","Your tone, from casual to very formal","British or American English"]},
+    fr:{t:"Traduction EN ↔ FR", p:"Traduit par notre IA comme l'écrirait un natif : l'anglais de tous les jours, pas l'anglais scolaire.", f:["Jusqu'à 500 mots","Le ton de votre choix, du familier au très formel","Anglais britannique ou américain"]}, chip:"≤ 500 words", chipFr:"≤ 500 mots" }
+];
+
+const GUIDES = [
+  { id:"guide-linkedin", price:5, guide:true, en:{t:"LinkedIn profile guide", p:"Rewrite your profile in one evening so recruiters find you and want to contact you.", f:["Headline and About section formulas","Before/after examples for your experience","Final checklist + 15-minute weekly routine"]},
+    fr:{t:"Guide profil LinkedIn", p:"Réécrivez votre profil en une soirée pour que les recruteurs vous trouvent et aient envie de vous contacter.", f:["Formules pour le titre et la section Infos","Exemples avant/après pour vos expériences","Checklist finale + routine de 15 minutes par semaine"]}, chip:"PDF · EN or FR", chipFr:"PDF · FR ou EN" },
+  { id:"guide-interview", price:5, guide:true, en:{t:"Job interview: the 20 trickiest questions", p:"Model answers to adapt in 5 minutes, so no question catches you off guard.", f:["What the recruiter really wants to know","Salary questions and how to negotiate","4 ready-to-send emails: thank-you, follow-up, negotiation, after a no"]},
+    fr:{t:"Entretien d'embauche : les 20 questions pièges", p:"Des réponses modèles à adapter en 5 minutes, pour qu'aucune question ne vous prenne de court.", f:["Ce que le recruteur veut vraiment savoir","Les questions sur le salaire et comment négocier","4 e-mails prêts à envoyer : remerciement, relance, négociation, après un refus"]}, chip:"PDF · EN or FR", chipFr:"PDF · FR ou EN" }
+];
+
+const T = {
+  en:{"svc.buy":"Order now","svc.fast":"1 min","gd.fast":"Instant","gd.buy":"Buy","toast.soon":"Checkout will be available soon. This is a preview of the shop."},
+  fr:{
+    "hero.title":"Petits travaux d'écriture, <em>livrés demain.</em>",
+    "hero.lead":"CV et lettre de motivation, relecture, réécriture et traduction en français et en anglais. Prix fixes, pas d'allers-retours : notre IA s'occupe de tout et votre résultat s'affiche en une minute environ.",
+    "hero.cta":"Voir les services","hero.cta2":"Comment ça marche",
+    "clock.order":"Texte envoyé","clock.brief":"Paiement validé","clock.done":"Résultat à l'écran","clock.note":"Le lien vous est aussi envoyé par e-mail.",
+    "svc.eyebrow":"Services · prix fixes","svc.title":"Choisissez, payez une fois, c'est prêt en une minute.","svc.sub":"Prix finaux, sans frais cachés. Remboursé si ça ne colle pas.",
+    "svc.buy":"Commander","svc.fast":"1 min",
+    "how.eyebrow":"Comment ça marche","how.title":"Quatre étapes, aucune réunion.",
+    "how.1t":"Choisissez un service","how.1p":"Chacun a un prix fixe et un périmètre clair.",
+    "how.2t":"Envoyez votre brief","how.2p":"Un court formulaire s'ouvre. Collez votre texte et dites-nous ce qu'il vous faut.",
+    "how.3t":"Payez en sécurité","how.3p":"Par carte ou Apple Pay via Stripe, notre partenaire de paiement.",
+    "how.4t":"C'est prêt en une minute","how.4p":"Le résultat s'affiche à l'écran et le lien arrive aussi par e-mail. Les ajustements sont inclus, et si le travail ne correspond pas à votre demande, vous êtes remboursé.",
+    "pr.eyebrow":"Notre engagement","pr.title":"Rapide ne veut pas dire bâclé.",
+    "pr.1t":"Pas prêt ? Remboursé.","pr.1p":"Si un souci technique empêche l'affichage de votre résultat, nous le terminons sous 24 heures ou vous êtes remboursé intégralement.",
+    "pr.2t":"Pas conforme ? Remboursé.","pr.2p":"Si le travail ne correspond pas à votre brief, signalez-le sous 7 jours et vous êtes remboursé intégralement.",
+    "gd.eyebrow":"Guides à télécharger","gd.title":"Faites-le vous-même, à votre rythme.","gd.sub":"Un PDF clair et pratique, à télécharger juste après le paiement.","gd.fast":"Immédiat","gd.buy":"Acheter",
+    "pr.3t":"Vos données restent à vous","pr.3p":"Vos fichiers servent uniquement à votre commande et sont supprimés après 5 jours. Seule la facture est conservée.",
+    "faq.title":"Questions fréquentes",
+    "faq.1q":"Dans quelles langues travaillez-vous ?","faq.1p":"Français et anglais, et traduction entre les deux.",
+    "faq.2q":"Comment envoyer mes documents ?","faq.2p":"Au moment de commander, un court formulaire vous demande de coller votre texte et de décrire votre besoin. Aucun compte nécessaire.",
+    "faq.3q":"Puis-je avoir une facture ?","faq.3p":"Oui. Un reçu est envoyé par e-mail après chaque paiement, et une facture sur simple demande.",
+    "faq.4q":"Et pour un travail plus long ?","faq.4p":"Commandez le service deux fois (par exemple deux blocs de 500 mots), ou écrivez-nous pour un devis.",
+    "ft.legal":"Mentions légales","ft.sites":"Les sites Gwalarn :","ft.nd":"NextDesk · carrière et télétravail","ft.ac":"AlgoClair · algorithmes des réseaux sociaux","ft.terms":"CGV","ft.privacy":"Confidentialité","ft.contact":"Contact","ft.withdraw":"Se rétracter du contrat ici",
+    "toast.soon":"Le paiement sera bientôt disponible. Ceci est un aperçu de la boutique."
+  }
+};
+
+// Keep the English text written in the HTML as the source for "en".
+document.querySelectorAll("[data-i18n]").forEach(el => T.en[el.dataset.i18n] ??= el.textContent);
+document.querySelectorAll("[data-i18n-html]").forEach(el => T.en[el.dataset.i18nHtml] ??= el.innerHTML);
+
+let lang = "en";
+const fmt = (n, l) => new Intl.NumberFormat(l === "fr" ? "fr-FR" : "en-IE", {style:"currency", currency:"EUR", maximumFractionDigits:0}).format(n);
+
+function renderCards(){
+  const card = s => {
+    const c = s[lang];
+    return `<article class="card">
+      <div class="top"><h3>${c.t}</h3><span class="price">${fmt(s.price, lang)}</span></div>
+      <p>${c.p}</p>
+      <ul>${c.f.map(x => `<li>${x}</li>`).join("")}</ul>
+      <div class="meta"><span class="chip fast">${s.fast ? s.fast[lang] : T[lang][s.guide ? "gd.fast" : "svc.fast"]}</span><span class="chip">${lang === "fr" && s.chipFr ? s.chipFr : s.chip}</span></div>
+      <a class="btn buy" href="${CHECKOUT[s.id] ? CHECKOUT[s.id] + "?lang=" + lang : "#"}" data-buy="${s.id}">${T[lang][s.guide ? "gd.buy" : "svc.buy"]} · ${fmt(s.price, lang)}</a>
+    </article>`;
+  };
+  document.getElementById("cards").innerHTML = SERVICES.map(card).join("");
+  document.getElementById("guide-cards").innerHTML = GUIDES.map(card).join("");
+}
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.querySelectorAll("[data-i18n]").forEach(el => { const v = T[l][el.dataset.i18n]; if (v) el.textContent = v; });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { const v = T[l][el.dataset.i18nHtml]; if (v) el.innerHTML = v; });
+  document.querySelectorAll("[data-set-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.setLang === l));
+  document.querySelectorAll("[data-href-en]").forEach(a => a.href = a.dataset[l === "fr" ? "hrefFr" : "hrefEn"]);
+  renderCards();
+  try { localStorage.setItem("lang", l); } catch(e) {}
+}
+
+document.addEventListener("click", e => {
+  const lb = e.target.closest("[data-set-lang]");
+  if (lb) return setLang(lb.dataset.setLang);
+  const buy = e.target.closest("[data-buy]");
+  if (buy && !CHECKOUT[buy.dataset.buy]) {
+    e.preventDefault();
+    const t = document.getElementById("toast");
+    t.textContent = T[lang]["toast.soon"]; t.hidden = false;
+    clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 3200);
+  }
+});
+
+let start = "en";
+try { start = localStorage.getItem("lang") || ""; } catch(e) { start = ""; }
+if (location.hash === "#fr" || location.hash === "#en") start = location.hash.slice(1);
+if (!start) start = (navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en";
+setLang(start);
+</script>
+</body></html>

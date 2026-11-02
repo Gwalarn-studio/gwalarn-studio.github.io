@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://gwalarn-studio.github.io/algoclair/sitemap.xml
