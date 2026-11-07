@@ -223,3 +223,4 @@ aside .box.promo p{color:var(--muted)}
 .prose .btn-mark{color:var(--mark-ink)}
 .btn[aria-disabled="true"]{opacity:1;background:var(--tint);color:var(--ink);border:1px dashed var(--muted);cursor:default}
 .prose a.btn[aria-disabled="true"]{color:var(--ink)}
+.cat-intro{max-width:46rem;color:var(--muted,inherit);margin:0}
