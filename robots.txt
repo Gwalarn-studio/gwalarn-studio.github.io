@@ -4,3 +4,4 @@ Allow: /
 Sitemap: https://gwalarn-studio.github.io/Plume-and-go/sitemap.xml
 Sitemap: https://gwalarn-studio.github.io/nextdesk/sitemap.xml
 Sitemap: https://gwalarn-studio.github.io/algoclair/sitemap.xml
+Sitemap: https://gwalarn-studio.github.io/guides/sitemap.xml
