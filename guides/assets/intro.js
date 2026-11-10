@@ -57,15 +57,12 @@
   var W = innerWidth, H = innerHeight;
   var PW = W * 2.6, PH = H * 2.6;                                // taille du plan (px CSS)
   var dpr = Math.min(devicePixelRatio || 1, 1);
-  map.width = PW * dpr; map.height = PH * dpr;
   plane.style.width = PW + "px"; plane.style.height = PH + "px";
   plane.style.left = (W - PW) / 2 + "px"; plane.style.top = (H - PH) / 2 + "px";
-  frs.forEach(function (s) { s.setAttribute("viewBox", "0 0 " + PW + " " + PH); s.style.width = PW + "px"; s.style.height = PH + "px"; });
   var ctx = map.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   var FR = [-2.4, -46.6];       // rotation qui met la France face à la caméra
-  var proj = d3.geoOrthographic().clipAngle(90).precision(0.5).translate([PW / 2, PH / 2]);
+  var proj = d3.geoOrthographic().clipAngle(90).precision(1).translate([PW / 2, PH / 2]);
   var path = d3.geoPath(proj, ctx), svgPath = d3.geoPath(proj);
   var grat = d3.geoGraticule10(), sphere = { type: "Sphere" };
 
@@ -91,9 +88,33 @@
     // décalage pour amener le centre de la France au centre de l'écran
     var dx = PW / 2 - cx, dy = PH / 2 - cy;
 
+    // Toile : on coupe la partie du plan qui, en rase-mer, passerait derrière la caméra
+    // (hors écran de toute façon). Safari affiche mal ce cas : clignotements, plan qui saute.
+    var CH = Math.min(PH, Math.round(cy + H * 0.62 + 30));
+    map.width = PW * dpr; map.height = CH * dpr;
+    map.style.height = CH + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // fondu des bords de la carte (avant : masque CSS, très coûteux sur iPhone pendant l'animation)
+    var edge = ctx.createRadialGradient(0, 0, 0.62, 0, 0, 1);
+    edge.addColorStop(0, "#000"); edge.addColorStop(1, "rgba(0,0,0,0)");
+
+    // France en relief : tracée une seule fois à sa taille finale, petits calques SVG ;
+    // pendant la plongée on les agrandit par transformation (pas de redessin à chaque image).
+    var m = 30, fx = fb[0][0] - m, fy = fb[0][1] - m, fw = fb[1][0] - fb[0][0] + 2 * m, fhh = fb[1][1] - fb[0][1] + 2 * m;
+    var frD = svgPath(geo.france) || "", frZ = [];
+    frs.forEach(function (s) {
+      s.setAttribute("viewBox", fx + " " + fy + " " + fw + " " + fhh);
+      s.style.left = fx + "px"; s.style.top = fy + "px"; s.style.width = fw + "px"; s.style.height = fhh + "px";
+      s.style.transformOrigin = (PW / 2 - fx) + "px " + (PH / 2 - fy) + "px";
+      s.firstElementChild.setAttribute("d", frD);
+      var mz = /fr-d(\d)/.exec(s.getAttribute("class"));
+      frZ.push(mz ? -4 * mz[1] : 0);
+    });
+    var FR_SHOW = 2600; // avant : la France tourne avec le globe, dessinée dans la toile
+
     var T0 = performance.now(), lastDraw = -1;
 
-    function draw(rot, k, gratA) {
+    function draw(rot, k, gratA, fade, withFr) {
       proj.rotate(rot).scale(k);
       ctx.clearRect(0, 0, PW, PH);
       var c = PW / 2, m = PH / 2;
@@ -106,13 +127,20 @@
       if (gratA > 0.01) { ctx.beginPath(); path(grat); ctx.strokeStyle = "rgba(255,255,255," + 0.09 * gratA + ")"; ctx.lineWidth = 0.6; ctx.stroke(); }
       ctx.beginPath(); path(geo.land); ctx.fillStyle = "#2f6b55"; ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.lineWidth = 0.6; ctx.stroke();
-      var d = svgPath(geo.france) || "";
-      frs.forEach(function (s) { s.firstElementChild.setAttribute("d", d); });
+      if (withFr) { ctx.beginPath(); path(geo.france); ctx.fillStyle = "#e9b752"; ctx.fill(); ctx.strokeStyle = "#ffe3a3"; ctx.lineWidth = 1.5; ctx.stroke(); }
+      if (fade) {
+        ctx.save(); ctx.globalCompositeOperation = "destination-in";
+        ctx.translate(PW / 2, PH / 2); ctx.scale(PW / 2, PH / 2);
+        ctx.fillStyle = edge; ctx.fillRect(-1, -1, 2, 2);
+        ctx.restore();
+      }
     }
 
     function frame(now) {
       if (done) return;
       var t = now - T0;
+      // lecture de la position du phare AVANT toute écriture de style (sinon le navigateur recalcule la page à chaque image)
+      var lr = (her && lamp && t > 6400 && t < 7700) ? lamp.getBoundingClientRect() : null;
       // 1. la Terre tourne vers l'Europe (0 → 2,6 s)
       var a = io(seg(t, 0, 2600));
       // 2. le drone plonge : zoom continu (1,8 → 4,8 s)
@@ -130,7 +158,12 @@
       if (t < 4900) {
         var rot = [lerp(FR[0] + 140, FR[0], a), lerp(FR[1] + 18, FR[1], a)];
         var k = k0 * Math.pow(k1 / k0, z);
-        if (Math.abs(t - lastDraw) > 0) { draw(rot, k, 1 - z); lastDraw = t; }
+        if (Math.abs(t - lastDraw) > 0) { draw(rot, k, 1 - z, p > 0 || z > 0.6, t < FR_SHOW); lastDraw = t; }
+        var sc = k / k1, frOn = t >= FR_SHOW;
+        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px) scale(" + sc + ")"; s.style.visibility = frOn ? "" : "hidden"; });
+      } else if (lastDraw < 4900) {
+        lastDraw = 4900;
+        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px)"; s.style.visibility = ""; });
       }
 
       // caméra : plongée (rotateX), avance (scale), puis la France pivote et devient livre
@@ -164,8 +197,7 @@
         // faisceau : balaie le ciel (5,6 → 6,6 s) puis se tourne vers nous et s'élargit
         var sweep = io(seg(t, 5600, 6600)), face = io(seg(t, 6400, 6900)) * (1 - io(seg(t, 7000, 7900)));
         if (beam) beam.setAttribute("transform", "rotate(" + lerp(lerp(215, 168, sweep) + 30 * io(seg(t, 7000, 9300)), 180, face) + " 35 35) scale(" + lerp(1, 1.4, face) + "," + lerp(1, 5, face) + ")");
-        if (lamp) {
-          var lr = lamp.getBoundingClientRect();
+        if (lr) {
           flash.style.setProperty("--fx", (lr.left + lr.width / 2) / W * 100 + "%");
           flash.style.setProperty("--fy", (lr.top + lr.height / 2) / H * 100 + "%");
         }
@@ -178,9 +210,6 @@
         var s0 = Math.min(H * 0.46 / H, (H * 0.46 / 1.38) / W * 1.25);
         site.style.opacity = String(seg(t, 8150, 8500));
         site.style.transform = t < 8150 ? "scale(0)" : "perspective(1100px) rotateY(" + lerp(-24, 0, g) + "deg) rotateX(" + lerp(10, 0, g) + "deg) scale(" + lerp(s0, 1, g) + ")";
-        site.style.borderRadius = lerp(14, 0, g) + "px";
-        site.style.boxShadow = "0 30px 80px rgba(0,0,0," + (0.6 * (1 - g)) + ")";
-        site.style.overflow = g < 1 ? "hidden" : "";
       }
       caption.classList.toggle("show", t > 1300 && t < 4300);
 
@@ -196,6 +225,7 @@
     if (typeof onKey === "function") document.removeEventListener("keydown", onKey);
     document.documentElement.classList.remove("intro-on");
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
+    if (frs) frs.forEach(function (s) { s.style.transform = s.style.visibility = ""; });
     if (instant) { intro.remove(); return; }
     intro.style.transition = "opacity .6s ease"; intro.style.opacity = "0";
     setTimeout(function () { intro.remove(); }, 650);
