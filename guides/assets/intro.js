@@ -361,7 +361,6 @@
     var hb = document.querySelector(".showcase .book");
     if (hb && !instant) { hb.style.animation = "none"; void hb.offsetWidth; hb.style.animation = ""; }
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
-    if (frs) frs.forEach(function (s) { s.style.transform = s.style.opacity = s.style.visibility = ""; });
     var free = function () { if (glFree) try { glFree(); } catch (e) {} };
     if (instant) { intro.remove(); free(); return; }
     intro.style.transition = "opacity .35s ease"; intro.style.opacity = "0";
