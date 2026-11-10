@@ -12,6 +12,13 @@
   if (seen || reduce || robot || !window.d3 || !d3.geoOrthographic) { finish(true); return; }
   document.documentElement.classList.add("intro-on");
   intro.querySelector(".skip").addEventListener("click", function () { finish(); });
+  // Clavier et lecteurs d'écran : seul le bouton « Passer l'intro » est atteignable pendant l'animation,
+  // la touche Échap la passe aussi, et le site derrière n'est pas atteignable tant qu'elle joue.
+  intro.removeAttribute("aria-hidden");
+  Array.prototype.forEach.call(intro.children, function (c) { if (!c.classList.contains("skip")) c.setAttribute("aria-hidden", "true"); });
+  if (document.getElementById("site")) document.getElementById("site").inert = true;
+  var onKey = function (e) { if (e.key === "Escape") finish(); };
+  document.addEventListener("keydown", onKey);
 
   var plane = intro.querySelector(".plane"), world = intro.querySelector(".world");
   var map = intro.querySelector(".plane canvas");
@@ -185,6 +192,8 @@
   function finish(instant) {
     if (done) return;
     done = true;
+    if (site) site.inert = false;
+    if (typeof onKey === "function") document.removeEventListener("keydown", onKey);
     document.documentElement.classList.remove("intro-on");
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
     if (instant) { intro.remove(); return; }

@@ -98,9 +98,9 @@ section{padding-block:52px}
 .tldr b{font-family:var(--display)}
 .tldr ul{margin:.5em 0 0;padding-left:1.2em}
 .sample{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;font-size:.95rem;margin:1.2em 0;box-shadow:0 1px 0 var(--line)}
-.sample h4{font-family:var(--display);font-size:1.3rem;margin:0}
+.sample h3{font-family:var(--display);font-size:1.3rem;margin:0}
 .sample .role{color:var(--muted);margin:0 0 .8em}
-.sample h5{font:600 .75rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:1.2em 0 .5em}
+.sample h4{font:600 .75rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:1.2em 0 .5em}
 .sample ul{padding-left:1.1em}
 .copy{float:right;font:500 .75rem/1 var(--mono);background:var(--tint);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:7px 11px;cursor:pointer}
 .checklist{list-style:none;padding:0}

@@ -318,3 +318,7 @@ html.intro-on #site { transform-origin: 50% 50vh; will-change: transform; }
   #intro .mon { left: var(--xp); height: var(--hp); }
   #intro .far .mon { bottom: 9vh; }
 }
+
+/* Navigation au clavier : contour bien visible sur fond sombre comme sur papier */
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
+.paper :focus-visible, .on-paper :focus-visible { outline-color: #8a5a00; }
