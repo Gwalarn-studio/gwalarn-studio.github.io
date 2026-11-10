@@ -314,8 +314,8 @@ html.intro-on #site .top-nav { backdrop-filter: none; -webkit-backdrop-filter: n
 #intro .m-phare .b2 { fill: #fff3c6; opacity: .35; }
 
 #intro .hmist { position: absolute; left: 0; right: 0; bottom: 0; height: 20vh; background: linear-gradient(0deg, rgba(14,10,30,.95), rgba(14,10,30,0)); }
-#intro .hflash { position: absolute; inset: 0; opacity: 0; pointer-events: none; z-index: 1;
-  background: radial-gradient(circle at var(--fx, 90%) var(--fy, 70%), #fffbe6 0%, #ffe28a 30%, #ffc94d 60%, #f4a83a 100%); }
+#intro .hflash { position: absolute; left: 0; top: 0; width: 300vmax; height: 300vmax; opacity: 0; pointer-events: none; z-index: 1; will-change: transform, opacity;
+  background: radial-gradient(circle closest-side, #fffbe6 0%, #ffe28a 30%, #ffc94d 60%, #f4a83a 100%); }
 @keyframes her-blink { 50% { opacity: .25; } }
 @keyframes her-cloud { to { transform: translateX(6vw); } }
 @media (max-aspect-ratio: 1/1) {
@@ -326,3 +326,7 @@ html.intro-on #site .top-nav { backdrop-filter: none; -webkit-backdrop-filter: n
 /* Navigation au clavier : contour bien visible sur fond sombre comme sur papier */
 :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
 .paper :focus-visible, .on-paper :focus-visible { outline-color: #8a5a00; }
+
+/* Intro : chaque couche qui s'estompe a sa propre « plaque » graphique, préparée dès le départ :
+   changer son opacité ne demande alors aucun redessin (pas de micro-coupure). */
+#intro .bgfill, #intro .sky, #intro .fog, #intro .heritage, #intro .world, #intro .plane canvas, #intro .plane .book, #intro .caption { will-change: opacity; }
