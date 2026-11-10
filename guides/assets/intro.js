@@ -308,8 +308,11 @@
 
       map.style.opacity = String(1 - f);
       fog.style.opacity = String(p * (1 - f) * 0.9);
-      var frA = vis(t >= FR_SHOW ? 1 - bk : 0);
-      frs.forEach(function (s) { s.style.opacity = frA; });
+      // Une fois le livre là, la France en relief et la carte sont MASQUÉES pour de bon
+      // (Safari peut réafficher une couche 3D presque transparente : la France réapparaissait derrière le livre).
+      var frA = vis(t >= FR_SHOW ? 1 - bk : 0), frGone = bk >= 1 ? "hidden" : "";
+      frs.forEach(function (s) { s.style.opacity = frA; s.style.visibility = frGone; });
+      map.style.visibility = f >= 1 ? "hidden" : "";
       book.style.opacity = vis(bk);
       // le décor s'efface et laisse voir le site, déjà en place derrière
       var bgA = 1 - io(seg(t, 8100, 8900));
@@ -358,7 +361,7 @@
     var hb = document.querySelector(".showcase .book");
     if (hb && !instant) { hb.style.animation = "none"; void hb.offsetWidth; hb.style.animation = ""; }
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
-    if (frs) frs.forEach(function (s) { s.style.transform = s.style.opacity = ""; });
+    if (frs) frs.forEach(function (s) { s.style.transform = s.style.opacity = s.style.visibility = ""; });
     var free = function () { if (glFree) try { glFree(); } catch (e) {} };
     if (instant) { intro.remove(); free(); return; }
     intro.style.transition = "opacity .35s ease"; intro.style.opacity = "0";
