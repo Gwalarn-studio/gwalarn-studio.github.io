@@ -1,6 +1,7 @@
 /* Intro cinématique Gwalarn, en un seul plan continu « drone » :
    la Terre tourne, la caméra plonge vers la France, puis bascule jusqu'à raser la mer ;
-   la France se détache, tourne sur elle-même et devient un livre, qui s'ouvre sur le site.
+   la France se détache, tourne sur elle-même et devient un livre ; le décor s'efface sur le site
+   et le livre va se poser à sa place, sous le titre de la page d'accueil.
    Jouée à chaque ouverture, bouton « Passer l'intro », rien si l'animation est réduite. */
 (function () {
   var intro = document.getElementById("intro");
@@ -11,6 +12,8 @@
   var robot = /bot|crawl|spider|slurp|lighthouse|inspectiontool|pagespeed|facebookexternalhit|bingpreview/i.test(navigator.userAgent || "");
   if (seen || reduce || robot || !window.d3 || !d3.geoOrthographic) { finish(true); return; }
   document.documentElement.classList.add("intro-on");
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.scrollTo(0, 0);
   intro.querySelector(".skip").addEventListener("click", function () { finish(); });
   // Clavier et lecteurs d'écran : seul le bouton « Passer l'intro » est atteignable pendant l'animation,
   // la touche Échap la passe aussi, et le site derrière n'est pas atteignable tant qu'elle joue.
@@ -90,6 +93,13 @@
     var bookScale = Math.min(H * 0.46, W * 0.85 * 1.38) / bh;
     // décalage pour amener le centre de la France au centre de l'écran
     var dx = PW / 2 - cx, dy = PH / 2 - cy;
+    // Place finale : le livre de la page d'accueil (sous le titre). Mesuré une fois, avant l'animation.
+    var heroBook = document.querySelector(".showcase .book"), tgX = 0, tgY = 0, endScale = bookScale;
+    if (heroBook) {
+      var sr = heroBook.parentNode.getBoundingClientRect();
+      tgX = sr.left + sr.width / 2 - W / 2; tgY = sr.top + sr.height / 2 - H / 2;
+      endScale = heroBook.offsetHeight / bh;
+    }
 
     // Toile : on coupe la partie du plan qui, en rase-mer, passerait derrière la caméra
     // (hors écran de toute façon). Safari affiche mal ce cas : clignotements, plan qui saute.
@@ -269,8 +279,8 @@
       // 5. la France tourne sur elle-même et se redresse en livre (5,8 → 8,0 s)
       var r = io(seg(t, 5800, 8000));
       var bk = out(seg(t, 7000, 7900));
-      // 6. le livre s'ouvre et la caméra entre dedans (8,3 → 9,6 s)
-      var o = io(seg(t, 8300, 9600));
+      // 6. le décor s'efface sur le site et le livre va se poser sous le titre (8,1 → 9,4 s)
+      var o = io(seg(t, 8100, 9400));
 
       if (t < 4900) {
         var rot = [lerp(FR[0] + 140, FR[0], a), lerp(FR[1] + 18, FR[1], a)];
@@ -285,23 +295,24 @@
 
       // caméra : plongée (rotateX), avance (scale), puis la France pivote et devient livre
       var tilt = lerp(0, 74, p) * (1 - r) + lerp(0, 10, r);      // degrés : 0 → 74 (rase-mer) → 10 (livre debout)
-      var yaw = lerp(0, -24, r);                                 // le livre se tourne de 3/4
+      tilt = lerp(tilt, 4, o);                                   // même inclinaison que le livre de l'accueil
+      var yaw = lerp(lerp(0, -24, r), -26, o);                   // le livre se tourne de 3/4
       var spin = lerp(0, -360, r);                               // la France tourne sur elle-même
       var push = lerp(1, 1.35, p) * (1 - r) + bookScale * r;     // le drone avance, puis recule sur le livre
-      push *= lerp(1, 2.2, o);
+      push = lerp(push, endScale, o);
       var lift = lerp(0, H * 0.18, p) * (1 - r);                 // horizon qui remonte en rase-mer
-      plane.style.transform = "translate(" + dx * clamp(z * 1.4) + "px," + (dy * clamp(z * 1.4) + lift) + "px) " +
-        "rotateX(" + tilt + "deg) rotateY(" + yaw + "deg) rotateZ(" + spin + "deg) scale(" + push + ")";
+      plane.style.transform = "translate(" + (dx * clamp(z * 1.4) + tgX * o) + "px," + (dy * clamp(z * 1.4) + lift + tgY * o) + "px) " +
+        "rotateX(" + tilt + "deg) rotateY(" + yaw + "deg) rotateZ(" + spin + "deg) scale3d(" + push + "," + push + "," + lerp(1, push, o) + ")";
+      // en fin de course, même point de vue que le livre de l'accueil (perspective centrée sur lui)
+      if (o > 0) { world.style.perspective = lerp(900, 1200, o) + "px"; world.style.perspectiveOrigin = "50% " + lerp(H * 0.35, H / 2 + tgY, o) + "px"; }
 
       map.style.opacity = String(1 - f);
       fog.style.opacity = String(p * (1 - f) * 0.9);
       var frA = vis(t >= FR_SHOW ? 1 - bk : 0);
       frs.forEach(function (s) { s.style.opacity = frA; });
       book.style.opacity = vis(bk);
-      cover.style.transform = "rotateY(" + lerp(0, -165, o) + "deg)";
-      // le livre s'ouvre sur le site : la page intérieure, c'est le site, qui pivote et se pose en plein écran
-      var g = io(seg(t, 8300, 9900));
-      var bgA = 1 - io(seg(t, 8250, 8650));
+      // le décor s'efface et laisse voir le site, déjà en place derrière
+      var bgA = 1 - io(seg(t, 8100, 8900));
       bgfill.style.opacity = sky.style.opacity = String(bgA);
       // décor patrimoine : apparaît quand la France se détache ; le phare balaie, éclaire tout en doré,
       // et quand la lumière retombe, la tour Eiffel est là, devant.
@@ -321,16 +332,11 @@
         flash.style.opacity = vis(fl);
         herFront.style.opacity = t < 6950 ? "0.002" : "1";
       }
-      world.style.opacity = String(1 - io(seg(t, 8350, 8800)));
-      if (site) {
-        var s0 = Math.min(H * 0.46 / H, (H * 0.46 / 1.38) / W * 1.25);
-        site.style.opacity = vis(seg(t, 8150, 8500));
-        site.style.transform = "perspective(1100px) rotateY(" + lerp(-24, 0, g) + "deg) rotateX(" + lerp(10, 0, g) + "deg) scale(" + lerp(s0, 1, g) + ")";
-      }
+      if (site) site.style.opacity = vis(seg(t, 7900, 8100));
       caption.classList.toggle("show", t > 1300 && t < 4300);
 
       if (warm) return;
-      if (t < 9900) requestAnimationFrame(frame); else finish(true);
+      if (t < 9450) requestAnimationFrame(frame); else finish();
     }
     // halo de l'éclair : carré de 2 diagonales d'écran, centré sur le phare par translation
     var FD = Math.ceil(Math.sqrt(W * W + H * H));
@@ -349,11 +355,13 @@
     if (site) site.inert = false;
     if (typeof onKey === "function") document.removeEventListener("keydown", onKey);
     document.documentElement.classList.remove("intro-on");
+    var hb = document.querySelector(".showcase .book");
+    if (hb && !instant) { hb.style.animation = "none"; void hb.offsetWidth; hb.style.animation = ""; }
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
     if (frs) frs.forEach(function (s) { s.style.transform = s.style.opacity = ""; });
     var free = function () { if (glFree) try { glFree(); } catch (e) {} };
     if (instant) { intro.remove(); free(); return; }
-    intro.style.transition = "opacity .6s ease"; intro.style.opacity = "0";
-    setTimeout(function () { intro.remove(); free(); }, 650);
+    intro.style.transition = "opacity .35s ease"; intro.style.opacity = "0";
+    setTimeout(function () { intro.remove(); free(); }, 400);
   }
 })();
