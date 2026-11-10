@@ -33,7 +33,7 @@
   var herFront = intro.querySelector(".heritage .front"), flash = intro.querySelector(".hflash");
   var beam = intro.querySelector(".m-phare .beam"), lamp = intro.querySelector(".m-phare .lamp");
   var site = document.getElementById("site");
-  var done = false;
+  var done = false; var glFree = null;
 
   // ---------- outils ----------
   var clamp = function (x) { return x < 0 ? 0 : x > 1 ? 1 : x; };
@@ -41,6 +41,9 @@
   var io = function (x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }; // ease in-out
   var out = function (x) { return 1 - Math.pow(1 - x, 3); };
   var lerp = function (a, b, x) { return a + (b - a) * x; };
+  // Opacité plancher : un élément « invisible » reste à 0,2 % au lieu de 0, pour que le téléphone
+  // le prépare dès le début ; sinon il le prépare au moment où il apparaît, d'où une micro-coupure.
+  var vis = function (x) { return String(x < 0.002 ? 0.002 : x); };
 
   // ---------- ciel étoilé (dessiné une fois) ----------
   (function () {
@@ -59,14 +62,14 @@
   var dpr = Math.min(devicePixelRatio || 1, 1);
   plane.style.width = PW + "px"; plane.style.height = PH + "px";
   plane.style.left = (W - PW) / 2 + "px"; plane.style.top = (H - PH) / 2 + "px";
-  var ctx = map.getContext("2d");
+  var ctx = null; // toile 2D : seulement si WebGL 2 n'est pas disponible
 
   var FR = [-2.4, -46.6];       // rotation qui met la France face à la caméra
   var proj = d3.geoOrthographic().clipAngle(90).precision(1).translate([PW / 2, PH / 2]);
-  var path = d3.geoPath(proj, ctx), svgPath = d3.geoPath(proj);
+  var path = null, svgPath = d3.geoPath(proj);
   var grat = d3.geoGraticule10(), sphere = { type: "Sphere" };
 
-  fetch(intro.getAttribute("data-geo")).then(function (r) { return r.json(); }).then(start).catch(function () { finish(); });
+  fetch(intro.getAttribute("data-geo")).then(function (r) { return r.json(); }).then(start).catch(function (e) { if (window.console) console.warn("intro", e); finish(); });
 
   function start(geo) {
     var k0 = Math.min(W, H) * 0.36;
@@ -91,12 +94,23 @@
     // Toile : on coupe la partie du plan qui, en rase-mer, passerait derrière la caméra
     // (hors écran de toute façon). Safari affiche mal ce cas : clignotements, plan qui saute.
     var CH = Math.min(PH, Math.round(cy + H * 0.62 + 30));
-    map.width = PW * dpr; map.height = CH * dpr;
     map.style.height = CH + "px";
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // fondu des bords de la carte (avant : masque CSS, très coûteux sur iPhone pendant l'animation)
-    var edge = ctx.createRadialGradient(0, 0, 0.62, 0, 0, 1);
-    edge.addColorStop(0, "#000"); edge.addColorStop(1, "rgba(0,0,0,0)");
+    var gdpr = Math.min(devicePixelRatio || 1, 1.5);
+    map.width = Math.round(PW * gdpr); map.height = Math.round(CH * gdpr);
+    var drawGL = null;
+    try { drawGL = makeGL(CH, gdpr); } catch (e) { drawGL = null; }
+    var edge;
+    if (!drawGL) {
+      if (map.getContext("webgl2")) { // la toile est déjà prise par WebGL : on la remplace
+        var nm = map.cloneNode(false); map.parentNode.replaceChild(nm, map); map = nm;
+      }
+      map.width = PW * dpr; map.height = CH * dpr;
+      ctx = map.getContext("2d"); path = d3.geoPath(proj, ctx);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // fondu des bords de la carte (avant : masque CSS, très coûteux sur iPhone pendant l'animation)
+      edge = ctx.createRadialGradient(0, 0, 0.62, 0, 0, 1);
+      edge.addColorStop(0, "#000"); edge.addColorStop(1, "rgba(0,0,0,0)");
+    }
 
     // France en relief : tracée une seule fois à sa taille finale, petits calques SVG ;
     // pendant la plongée on les agrandit par transformation (pas de redessin à chaque image).
@@ -112,9 +126,110 @@
     });
     var FR_SHOW = 2600; // avant : la France tourne avec le globe, dessinée dans la toile
 
-    var T0 = performance.now(), lastDraw = -1;
+    // ---------- globe dessiné par la puce graphique (WebGL 2) ----------
+    // La carte du monde est peinte UNE fois dans deux images (monde entier + Europe en détail) ;
+    // ensuite, à chaque image, la puce graphique calcule chaque pixel du globe : rien à redessiner
+    // côté processeur, donc pas d'à-coups. Si WebGL 2 manque, on garde l'ancien dessin.
+    function makeGL(CH, gdpr) {
+      var gl;
+      try { gl = map.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: "high-performance" }); } catch (e) { gl = null; }
+      if (!gl) return null;
+      glFree = function () { var x = gl.getExtension("WEBGL_lose_context"); if (x) x.loseContext(); };
+      var BOX = [-32, 38, 28, 76]; // Europe en détail : longitude min/max, latitude min/max
+      // carte « à plat » (équirectangulaire) : d3 découpe proprement les terres au méridien 180°
+      var D = Math.PI / 180, eq = d3.geoEquirectangular().scale(1).translate([0, 0]).precision(0);
+      function paint(w, h, l0, l1, b0, b1, lw) {
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        var x = c.getContext("2d"), sx = w / ((l1 - l0) * D), sy = h / ((b1 - b0) * D);
+        x.setTransform(sx, 0, 0, sy, -l0 * D * sx, b1 * D * sy);
+        var pth = d3.geoPath(eq, x);
+        x.lineJoin = "round";
+        x.beginPath(); pth(geo.land); x.fillStyle = "#2f6b55"; x.fill();
+        x.strokeStyle = "rgba(255,255,255,.16)"; x.lineWidth = lw / sx; x.stroke();
+        x.beginPath(); pth(geo.france); x.fillStyle = "#e9b752"; x.fill();
+        x.strokeStyle = "#ffe3a3"; x.lineWidth = lw * 1.6 / sx; x.stroke();
+        return c;
+      }
+      var cW = paint(4096, 2048, -180, 180, -90, 90, 1.2);
+      var cR = paint(4096, 2048, BOX[0], BOX[1], BOX[2], BOX[3], 2.2);
+      var aniso = gl.getExtension("EXT_texture_filter_anisotropic");
+      function tex(c, unit, wrapS) {
+        var t = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        if (aniso) gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+        c.width = c.height = 1; // libère la mémoire de l'image de départ
+      }
+      tex(cW, 0, gl.REPEAT); tex(cR, 1, gl.CLAMP_TO_EDGE);
+      var vs = "#version 300 es\nin vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+      var fs = [
+        "#version 300 es",
+        "precision highp float;",
+        "uniform sampler2D uW,uR;uniform vec2 uC,uRot;uniform float uK,uDpr,uH,uGrat,uFade;uniform vec4 uBox;out vec4 o;",
+        "float line(float v,float step,float wpx){float d=abs(fract(v/step+.5)-.5)*step;float fw=max(fwidth(v),1e-5);return 1.-clamp(d/fw/wpx,0.,1.);}",
+        "void main(){",
+        " vec2 p=vec2(gl_FragCoord.x,uH*uDpr-gl_FragCoord.y)/uDpr;",
+        " vec2 q=(p-uC)/uK;float r=length(q);",
+        " float X=q.x,Y=-q.y;float zd=sqrt(max(0.,1.-X*X-Y*Y));",
+        " float cd=cos(uRot.y),sd=sin(uRot.y);",
+        " float lam=atan(X,zd*cd+Y*sd)-uRot.x;float phi=asin(clamp(Y*cd-zd*sd,-1.,1.));",
+        " float lon=degrees(lam);lon=mod(lon+180.,360.)-180.;float lat=degrees(phi);",
+        // monde : dérivées corrigées au raccord 180°
+        " vec2 uw=vec2((lon+180.)/360.,(90.-lat)/180.);",
+        " vec2 dx=dFdx(uw),dy=dFdy(uw);dx.x-=sign(dx.x)*step(.5,abs(dx.x));dy.x-=sign(dy.x)*step(.5,abs(dy.x));",
+        " vec4 tw=textureGrad(uW,uw,dx,dy);",
+        " vec2 ur=vec2((lon-uBox.x)/(uBox.y-uBox.x),(uBox.w-lat)/(uBox.w-uBox.z));",
+        " vec2 rx=dFdx(ur),ry=dFdy(ur);rx.x-=sign(rx.x)*step(.25,abs(rx.x))*(360./(uBox.y-uBox.x));ry.x-=sign(ry.x)*step(.25,abs(ry.x))*(360./(uBox.y-uBox.x));",
+        " vec4 tr=textureGrad(uR,ur,rx,ry);",
+        " vec2 e=min(ur,1.-ur);float inR=smoothstep(0.,.04,min(e.x,e.y));",
+        " vec4 land=mix(tw,tr,inR);",
+        // océan : dégradé radial décalé (comme l'ancien dessin)
+        " vec2 c0=uC+vec2(-.35,-.4)*uK;float t=clamp((distance(p,c0)-.1*uK)/(1.25*uK),0.,1.);",
+        " vec3 sea=mix(vec3(.122,.333,.588),vec3(.024,.09,.184),t);",
+        // quadrillage tous les 10°
+        " float gl=max(line(lat,10.,.6),abs(lat)<80.?line(lon,10.,.6):0.);",
+        " sea=mix(sea,vec3(1.),.09*uGrat*gl);",
+        " vec3 col=sea*(1.-land.a)+land.rgb;",
+        " float cov=clamp((1.-r)*uK*uDpr+.5,0.,1.);",
+        " float ga=r<1.25?.45*clamp((1.25-r)/.33,0.,1.):0.;",
+        " vec4 glow=vec4(vec3(.47,.706,1.)*ga,ga);",
+        " vec4 c=vec4(col,1.)*cov+glow*(1.-cov);",
+        " vec2 h=uC;float ed=length((p-h)/h);c*=mix(1.,1.-clamp((ed-.62)/.38,0.,1.),uFade);",
+        " o=c;}"
+      ].join("\n");
+      function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+      var prog = gl.createProgram();
+      gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      gl.useProgram(prog);
+      var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      var al = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(al); gl.vertexAttribPointer(al, 2, gl.FLOAT, false, 0, 0);
+      var U = {}; ["uW", "uR", "uC", "uRot", "uK", "uDpr", "uH", "uGrat", "uFade", "uBox"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      gl.uniform1i(U.uW, 0); gl.uniform1i(U.uR, 1);
+      gl.uniform2f(U.uC, PW / 2, PH / 2); gl.uniform1f(U.uDpr, gdpr); gl.uniform1f(U.uH, CH);
+      gl.uniform4f(U.uBox, BOX[0], BOX[1], BOX[2], BOX[3]);
+      gl.viewport(0, 0, map.width, map.height);
+      gl.clearColor(0, 0, 0, 0);
+      var R = Math.PI / 180;
+      return function (rot, k, gratA, fade) {
+        gl.uniform2f(U.uRot, rot[0] * R, rot[1] * R); gl.uniform1f(U.uK, k);
+        gl.uniform1f(U.uGrat, gratA); gl.uniform1f(U.uFade, fade ? 1 : 0);
+        gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
+      };
+    }
+
+    var T0 = 0, lastDraw = -1;
 
     function draw(rot, k, gratA, fade, withFr) {
+      if (drawGL) { drawGL(rot, k, gratA, fade); return; }
       proj.rotate(rot).scale(k);
       ctx.clearRect(0, 0, PW, PH);
       var c = PW / 2, m = PH / 2;
@@ -138,7 +253,9 @@
 
     function frame(now) {
       if (done) return;
-      var t = now - T0;
+      var warm = now < 0;
+      if (!warm && !T0) T0 = now;
+      var t = warm ? 0 : now - T0;
       // lecture de la position du phare AVANT toute écriture de style (sinon le navigateur recalcule la page à chaque image)
       var lr = (her && lamp && t > 6400 && t < 7700) ? lamp.getBoundingClientRect() : null;
       // 1. la Terre tourne vers l'Europe (0 → 2,6 s)
@@ -159,11 +276,11 @@
         var rot = [lerp(FR[0] + 140, FR[0], a), lerp(FR[1] + 18, FR[1], a)];
         var k = k0 * Math.pow(k1 / k0, z);
         if (Math.abs(t - lastDraw) > 0) { draw(rot, k, 1 - z, p > 0 || z > 0.6, t < FR_SHOW); lastDraw = t; }
-        var sc = k / k1, frOn = t >= FR_SHOW;
-        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px) scale(" + sc + ")"; s.style.visibility = frOn ? "" : "hidden"; });
+        var sc = k / k1;
+        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px) scale(" + sc + ")"; });
       } else if (lastDraw < 4900) {
         lastDraw = 4900;
-        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px)"; s.style.visibility = ""; });
+        frs.forEach(function (s, i) { s.style.transform = "translateZ(" + frZ[i] + "px)"; });
       }
 
       // caméra : plongée (rotateX), avance (scale), puis la France pivote et devient livre
@@ -178,8 +295,9 @@
 
       map.style.opacity = String(1 - f);
       fog.style.opacity = String(p * (1 - f) * 0.9);
-      frs.forEach(function (s) { s.style.opacity = String(1 - bk); });
-      book.style.opacity = String(bk);
+      var frA = vis(t >= FR_SHOW ? 1 - bk : 0);
+      frs.forEach(function (s) { s.style.opacity = frA; });
+      book.style.opacity = vis(bk);
       cover.style.transform = "rotateY(" + lerp(0, -165, o) + "deg)";
       // le livre s'ouvre sur le site : la page intérieure, c'est le site, qui pivote et se pose en plein écran
       var g = io(seg(t, 8300, 9900));
@@ -189,7 +307,7 @@
       // et quand la lumière retombe, la tour Eiffel est là, devant.
       if (her) {
         var hA = io(seg(t, 5200, 6300)), rise = 1 - io(seg(t, 5200, 7000)), drift = seg(t, 7000, 9300);
-        her.style.opacity = String(hA * bgA);
+        her.style.opacity = vis(hA * bgA);
         herL.forEach(function (l, i) {
           var depth = [6, 12, 10][i];
           l.style.transform = "translateY(" + (rise * depth) + "vh) scale(" + (1 + drift * 0.025 * (i + 1)) + ")";
@@ -197,25 +315,32 @@
         // faisceau : balaie le ciel (5,6 → 6,6 s) puis se tourne vers nous et s'élargit
         var sweep = io(seg(t, 5600, 6600)), face = io(seg(t, 6400, 6900)) * (1 - io(seg(t, 7000, 7900)));
         if (beam) beam.setAttribute("transform", "rotate(" + lerp(lerp(215, 168, sweep) + 30 * io(seg(t, 7000, 9300)), 180, face) + " 35 35) scale(" + lerp(1, 1.4, face) + "," + lerp(1, 5, face) + ")");
-        if (lr) {
-          flash.style.setProperty("--fx", (lr.left + lr.width / 2) / W * 100 + "%");
-          flash.style.setProperty("--fy", (lr.top + lr.height / 2) / H * 100 + "%");
-        }
+        // l'éclair doré part du phare : on DÉPLACE un grand halo prêt à l'avance (pas de repeinture)
+        if (lr) flash.style.transform = "translate(" + (lr.left + lr.width / 2 - FD) + "px," + (lr.top + lr.height / 2 - FD) + "px)";
         var fl = io(seg(t, 6550, 6950)) * (1 - io(seg(t, 7000, 7600)));
-        flash.style.opacity = String(fl);
-        herFront.style.opacity = t < 6950 ? "0" : "1";
+        flash.style.opacity = vis(fl);
+        herFront.style.opacity = t < 6950 ? "0.002" : "1";
       }
       world.style.opacity = String(1 - io(seg(t, 8350, 8800)));
       if (site) {
         var s0 = Math.min(H * 0.46 / H, (H * 0.46 / 1.38) / W * 1.25);
-        site.style.opacity = String(seg(t, 8150, 8500));
-        site.style.transform = t < 8150 ? "scale(0)" : "perspective(1100px) rotateY(" + lerp(-24, 0, g) + "deg) rotateX(" + lerp(10, 0, g) + "deg) scale(" + lerp(s0, 1, g) + ")";
+        site.style.opacity = vis(seg(t, 8150, 8500));
+        site.style.transform = "perspective(1100px) rotateY(" + lerp(-24, 0, g) + "deg) rotateX(" + lerp(10, 0, g) + "deg) scale(" + lerp(s0, 1, g) + ")";
       }
       caption.classList.toggle("show", t > 1300 && t < 4300);
 
+      if (warm) return;
       if (t < 9900) requestAnimationFrame(frame); else finish(true);
     }
-    requestAnimationFrame(frame);
+    // halo de l'éclair : carré de 2 diagonales d'écran, centré sur le phare par translation
+    var FD = Math.ceil(Math.sqrt(W * W + H * H));
+    flash.style.width = flash.style.height = 2 * FD + "px";
+    flash.style.transform = "translate(" + (W * 0.9 - FD) + "px," + (H * 0.7 - FD) + "px)";
+    // Échauffement : première image dessinée et tout préparé AVANT de lancer le chrono,
+    // pour que l'animation démarre sans saut.
+    draw([FR[0] + 140, FR[1] + 18], k0, 1, false, true);
+    frame(-1);
+    requestAnimationFrame(function () { requestAnimationFrame(frame); });
   }
 
   function finish(instant) {
@@ -225,9 +350,10 @@
     if (typeof onKey === "function") document.removeEventListener("keydown", onKey);
     document.documentElement.classList.remove("intro-on");
     if (site) { site.style.transform = site.style.opacity = site.style.borderRadius = site.style.boxShadow = site.style.overflow = ""; }
-    if (frs) frs.forEach(function (s) { s.style.transform = s.style.visibility = ""; });
-    if (instant) { intro.remove(); return; }
+    if (frs) frs.forEach(function (s) { s.style.transform = s.style.opacity = ""; });
+    var free = function () { if (glFree) try { glFree(); } catch (e) {} };
+    if (instant) { intro.remove(); free(); return; }
     intro.style.transition = "opacity .6s ease"; intro.style.opacity = "0";
-    setTimeout(function () { intro.remove(); }, 650);
+    setTimeout(function () { intro.remove(); free(); }, 650);
   }
 })();
