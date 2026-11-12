@@ -156,25 +156,25 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
       <p>Collez votre CV, ou répondez simplement à quelques questions si vous n'en avez pas : notre IA rédige votre CV et la lettre assortie en moins d'une minute.</p>
       <ul><li>Pas de CV ? Un questionnaire simple suffit</li><li>Adapté à l'offre, lisible par les logiciels de tri</li><li>Retouches à la demande, puis PDF ou Word</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">CV + lettre</span></div>
-      <a class="btn buy" href="#" data-buy="cv">Commander · 15&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/cv?lang=fr" data-buy="cv">Commander · 15&nbsp;€</a>
     </article><article class="card">
       <div class="top"><h3>Relecture</h3><span class="price">7&nbsp;€</span></div>
       <p>Notre IA corrige chaque faute sans toucher à votre style, et vous explique chaque correction.</p>
       <ul><li>Jusqu'à 1 500 mots</li><li>Votre style gardé, chaque correction expliquée</li><li>Prêt en 1 minute, 2 ajustements inclus</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 1 500 mots</span></div>
-      <a class="btn buy" href="#" data-buy="proof">Commander · 7&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/proof?lang=fr" data-buy="proof">Commander · 7&nbsp;€</a>
     </article><article class="card">
       <div class="top"><h3>Réécriture</h3><span class="price">9&nbsp;€</span></div>
       <p>Notre IA rend votre texte plus clair et plus convaincant, dans le ton que vous choisissez.</p>
       <ul><li>Jusqu'à 800 mots</li><li>E-mail, bio, page web ou publication</li><li>Du familier au très formel</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 800 mots</span></div>
-      <a class="btn buy" href="#" data-buy="rewrite">Commander · 9&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/rewrite?lang=fr" data-buy="rewrite">Commander · 9&nbsp;€</a>
     </article><article class="card">
       <div class="top"><h3>Traduction EN ↔ FR</h3><span class="price">9&nbsp;€</span></div>
       <p>Traduit par notre IA comme l'écrirait un natif : l'anglais de tous les jours, pas l'anglais scolaire.</p>
       <ul><li>Jusqu'à 500 mots</li><li>Le ton de votre choix, du familier au très formel</li><li>Anglais britannique ou américain</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 500 mots</span></div>
-      <a class="btn buy" href="#" data-buy="translate">Commander · 9&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/translate?lang=fr" data-buy="translate">Commander · 9&nbsp;€</a>
     </article></div>
     </div>
   </section>
@@ -191,13 +191,13 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
       <p>Réécrivez votre profil en une soirée pour que les recruteurs vous trouvent et aient envie de vous contacter.</p>
       <ul><li>Formules pour le titre et la section Infos</li><li>Exemples avant/après pour vos expériences</li><li>Checklist finale + routine de 15 minutes par semaine</li></ul>
       <div class="meta"><span class="chip fast">Immédiat</span><span class="chip">PDF · FR ou EN</span></div>
-      <a class="btn buy" href="#" data-buy="guide-linkedin">Acheter · 5&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/guide-linkedin?lang=fr" data-buy="guide-linkedin">Acheter · 5&nbsp;€</a>
     </article><article class="card">
       <div class="top"><h3>Entretien d'embauche : les 20 questions pièges</h3><span class="price">5&nbsp;€</span></div>
       <p>Des réponses modèles à adapter en 5 minutes, pour qu'aucune question ne vous prenne de court.</p>
       <ul><li>Ce que le recruteur veut vraiment savoir</li><li>Les questions sur le salaire et comment négocier</li><li>4 e-mails prêts à envoyer : remerciement, relance, négociation, après un refus</li></ul>
       <div class="meta"><span class="chip fast">Immédiat</span><span class="chip">PDF · FR ou EN</span></div>
-      <a class="btn buy" href="#" data-buy="guide-interview">Acheter · 5&nbsp;€</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/guide-interview?lang=fr" data-buy="guide-interview">Acheter · 5&nbsp;€</a>
     </article></div>
     </div>
   </section>
@@ -272,7 +272,7 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
 <script>
 /* Order links go to the payments worker (brief form, then Stripe): WORKER/commander/<id>?lang=xx.
    Paste the worker address below once it is online (empty = "coming soon" toast on every button). */
-const WORKER = "";
+const WORKER = "https://commandes.gwalarn.workers.dev";
 const CHECKOUT = Object.fromEntries(["cv", "proof", "rewrite", "translate", "guide-linkedin", "guide-interview"]
   .map(id => [id, WORKER ? WORKER.replace(/\/+$/, "") + "/commander/" + id : ""]));
 

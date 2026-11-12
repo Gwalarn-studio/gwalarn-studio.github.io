@@ -156,25 +156,25 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
       <p>Paste your CV, or just answer a few simple questions if you don't have one: our AI writes your CV and matching cover letter in under a minute.</p>
       <ul><li>No CV? A simple questionnaire is enough</li><li>Tailored to the job ad, ATS-friendly</li><li>Changes on request, then PDF or Word</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">CV + letter</span></div>
-      <a class="btn buy" href="#" data-buy="cv">Order now · €15</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/cv?lang=en" data-buy="cv">Order now · €15</a>
     </article><article class="card">
       <div class="top"><h3>Proofreading</h3><span class="price">€7</span></div>
       <p>Our AI fixes every mistake without touching your style, and explains each fix.</p>
       <ul><li>Up to 1,500 words</li><li>Your style kept, every fix explained</li><li>Ready in 1 minute, 2 changes included</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 1,500 words</span></div>
-      <a class="btn buy" href="#" data-buy="proof">Order now · €7</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/proof?lang=en" data-buy="proof">Order now · €7</a>
     </article><article class="card">
       <div class="top"><h3>Rewriting</h3><span class="price">€9</span></div>
       <p>Our AI makes your text clearer and more convincing, in the tone you choose.</p>
       <ul><li>Up to 800 words</li><li>Email, bio, web page or post</li><li>From casual to very formal</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 800 words</span></div>
-      <a class="btn buy" href="#" data-buy="rewrite">Order now · €9</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/rewrite?lang=en" data-buy="rewrite">Order now · €9</a>
     </article><article class="card">
       <div class="top"><h3>Translation EN ↔ FR</h3><span class="price">€9</span></div>
       <p>Translated by our AI the way a native speaker would write it: everyday English, not textbook English.</p>
       <ul><li>Up to 500 words</li><li>Your tone, from casual to very formal</li><li>British or American English</li></ul>
       <div class="meta"><span class="chip fast">1 min</span><span class="chip">≤ 500 words</span></div>
-      <a class="btn buy" href="#" data-buy="translate">Order now · €9</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/translate?lang=en" data-buy="translate">Order now · €9</a>
     </article></div>
     </div>
   </section>
@@ -191,13 +191,13 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
       <p>Rewrite your profile in one evening so recruiters find you and want to contact you.</p>
       <ul><li>Headline and About section formulas</li><li>Before/after examples for your experience</li><li>Final checklist + 15-minute weekly routine</li></ul>
       <div class="meta"><span class="chip fast">Instant</span><span class="chip">PDF · EN or FR</span></div>
-      <a class="btn buy" href="#" data-buy="guide-linkedin">Buy · €5</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/guide-linkedin?lang=en" data-buy="guide-linkedin">Buy · €5</a>
     </article><article class="card">
       <div class="top"><h3>Job interview: the 20 trickiest questions</h3><span class="price">€5</span></div>
       <p>Model answers to adapt in 5 minutes, so no question catches you off guard.</p>
       <ul><li>What the recruiter really wants to know</li><li>Salary questions and how to negotiate</li><li>4 ready-to-send emails: thank-you, follow-up, negotiation, after a no</li></ul>
       <div class="meta"><span class="chip fast">Instant</span><span class="chip">PDF · EN or FR</span></div>
-      <a class="btn buy" href="#" data-buy="guide-interview">Buy · €5</a>
+      <a class="btn buy" href="https://commandes.gwalarn.workers.dev/commander/guide-interview?lang=en" data-buy="guide-interview">Buy · €5</a>
     </article></div>
     </div>
   </section>
@@ -272,7 +272,7 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-siz
 <script>
 /* Order links go to the payments worker (brief form, then Stripe): WORKER/commander/<id>?lang=xx.
    Paste the worker address below once it is online (empty = "coming soon" toast on every button). */
-const WORKER = "";
+const WORKER = "https://commandes.gwalarn.workers.dev";
 const CHECKOUT = Object.fromEntries(["cv", "proof", "rewrite", "translate", "guide-linkedin", "guide-interview"]
   .map(id => [id, WORKER ? WORKER.replace(/\/+$/, "") + "/commander/" + id : ""]));
 
