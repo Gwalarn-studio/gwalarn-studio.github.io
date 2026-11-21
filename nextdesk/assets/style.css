@@ -175,3 +175,7 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-siz
 .faq p{margin:.6em 0 0}
 @media (max-width:640px){.paywall{padding:20px 16px}.pw-buy .btn{width:100%;justify-content:center;white-space:normal;text-align:center}}
 .prose .btn-mark{color:var(--mark-ink)}
+.pack-list{margin:1rem 0 0;border:1px solid var(--line);border-radius:var(--r);padding:.8rem 1rem;background:var(--surface)}
+.pack-list summary{cursor:pointer;font-weight:600}
+.pack-list ul{columns:2 18rem;column-gap:2rem;margin:.8rem 0 0;padding-left:1.1rem;font-size:.95em}
+.pack-list li{margin:0 0 .4rem;break-inside:avoid}
