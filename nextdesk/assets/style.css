@@ -140,6 +140,12 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-siz
 }
 @media (max-width:600px){
   .grid,.rubrics{grid-template-columns:minmax(0,1fr)}
+  /* compact guide cards on phones: one per line, small, stacked */
+  .grid{gap:8px}
+  .card{padding:12px 14px;gap:4px;border-radius:12px}
+  .card h3{font-size:1rem;line-height:1.25}
+  .card p{font-size:.85rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .card .tag{font-size:.62rem}
   .strip{grid-template-columns:minmax(0,1fr)}
   .menu .hide-sm{display:none}
   /* wide tables become one card per row on phones */
