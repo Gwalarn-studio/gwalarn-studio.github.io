@@ -153,3 +153,25 @@ footer .sister{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-siz
   .stack td:first-child::before{display:none}
   .stack.num td:first-child::before{display:inline;content:attr(data-label) " ";font:inherit;letter-spacing:0;text-transform:none;color:var(--muted)}
 }
+/* Paid pack: paywall box at the end of each free guide, pack page */
+.paywall{margin:2em 0 1.4em;padding:26px 24px;border-radius:var(--r);background:var(--surface);border:2px solid var(--brand);position:relative}
+.paywall::before{content:"";position:absolute;left:0;right:0;top:-90px;height:88px;background:linear-gradient(to bottom,transparent,var(--paper));pointer-events:none}
+.paywall h2{margin:0 0 .5em;font-size:1.45rem}
+.lock-sub{font:600 .78rem/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.4em!important}
+.lock-list{list-style:none;padding:0!important}
+.lock-list li{padding-left:1.6em;position:relative;color:var(--muted)}
+.lock-list li::before{content:"🔒";position:absolute;left:0;font-size:.85em}
+.pack-items{padding-left:1.2em}
+.pack-items li::marker{content:"✓  ";color:var(--ok);font-weight:700}
+.pack-items.big{font-size:1.08rem;max-width:44em;margin:0 0 1.6em}
+.pw-buy{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:1.2em 0 .6em}
+.pw-more{font-weight:600}
+.pw-note{font-size:.88rem;color:var(--muted);margin:0!important}
+.pw-note.on-dark{color:inherit;opacity:.8}
+.btn.disabled{opacity:.65;cursor:not-allowed}
+.btn.disabled:hover{transform:none}
+.faq{border-bottom:1px solid var(--line);padding:12px 0}
+.faq summary{font-weight:600;cursor:pointer}
+.faq p{margin:.6em 0 0}
+@media (max-width:640px){.paywall{padding:20px 16px}.pw-buy .btn{width:100%;justify-content:center;white-space:normal;text-align:center}}
+.prose .btn-mark{color:var(--mark-ink)}
